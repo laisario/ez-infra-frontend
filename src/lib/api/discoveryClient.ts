@@ -201,17 +201,28 @@ export async function getArchitectureResult(
   }
 }
 
-/** Maps UI option to backend value (vibe-economica / vibe-performace) */
-function toBackendOption(option: RevisionOption): string {
-  return option === "vibe_economica" ? "vibe-economica" : "vibe-performace";
+export interface RevisionDecisionResponse {
+  decision: RevisionOption | null;
 }
 
-export async function postRevisionDecision(
-  projectId: string,
-  selectedOption: RevisionOption
-): Promise<void> {
-  await request(`/projects/${projectId}/revision-decision`, {
-    method: "POST",
-    body: JSON.stringify({ selected_option: toBackendOption(selectedOption) }),
-  });
+export async function getRevisionDecision(
+  projectId: string
+): Promise<RevisionDecisionResponse> {
+  return request<RevisionDecisionResponse>(
+    `/projects/${projectId}/revision-decision`
+  );
 }
+
+export async function putRevisionDecision(
+  projectId: string,
+  decision: RevisionOption
+): Promise<RevisionDecisionResponse> {
+  return request<RevisionDecisionResponse>(
+    `/projects/${projectId}/revision-decision`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ decision }),
+    }
+  );
+}
+

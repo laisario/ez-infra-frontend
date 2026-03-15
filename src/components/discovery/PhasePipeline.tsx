@@ -5,6 +5,10 @@ import { Check, MessageSquare, LayoutGrid, Eye, Code2 } from "lucide-react";
 export const PHASE_KEYS = ["discovery", "architecture", "review", "terraform"] as const;
 export type PhaseKey = (typeof PHASE_KEYS)[number];
 
+/**
+ * Architecture-phase access: Arquitetura, Revisão, and Terraform share the same
+ * unlock condition. When Arquitetura is enabled, Revisão and Terraform are enabled too.
+ */
 export function isPhaseReady(
   phaseKey: PhaseKey,
   readiness: Readiness | null,
@@ -15,10 +19,9 @@ export function isPhaseReady(
     case "discovery":
       return true;
     case "architecture":
-      return isReadyForArchitecture ?? false;
     case "review":
     case "terraform":
-      return currentState === "architecture_ready";
+      return isReadyForArchitecture ?? false;
     default:
       return false;
   }
@@ -92,18 +95,26 @@ const PhasePipeline = ({
     isPhaseReady(key, readiness, currentState, isReadyForArchitecture);
 
   useEffect(() => {
-    if (
-      selectedPhase === "architecture" &&
-      !isReadyForArchitecture &&
-      onPhaseSelect
-    ) {
+    const ready = isPhaseReady(
+      selectedPhase,
+      readiness,
+      currentState,
+      isReadyForArchitecture
+    );
+    if (!ready && onPhaseSelect) {
       const fallback =
         PHASES.find((p) =>
-          isPhaseReady(p.key as PhaseKey, readiness, currentState, isReadyForArchitecture)
+          isPhaseReady(p.key, readiness, currentState, isReadyForArchitecture)
         )?.key ?? "discovery";
       onPhaseSelect(fallback);
     }
-  }, [selectedPhase, isReadyForArchitecture, onPhaseSelect, readiness, currentState]);
+  }, [
+    selectedPhase,
+    onPhaseSelect,
+    readiness,
+    currentState,
+    isReadyForArchitecture,
+  ]);
 
   return (
     <div className="rounded-xl border bg-card p-4 shadow-sm">

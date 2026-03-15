@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type {
   DiscoverySession,
   ChecklistItem,
@@ -7,14 +7,12 @@ import type {
   DiscoveryChatMessage,
 } from "@/lib/api/types";
 import type { ContextResponse } from "@/lib/api/discoveryClient";
-import { linkRepo, startArchitecture } from "@/lib/api/discoveryClient";
-import { toast } from "sonner";
+import { linkRepo } from "@/lib/api/discoveryClient";
 import ReadinessPanel from "./ReadinessPanel";
 import ChecklistPanel from "./ChecklistPanel";
 import WhatWeUnderstandPanel from "./WhatWeUnderstandPanel";
 import NextBestStepPanel from "./NextBestStepPanel";
 import RecentActivityPanel from "./RecentActivityPanel";
-import PhasePipeline from "./PhasePipeline";
 import DiagramsPanel from "./DiagramsPanel";
 import ReviewPanel from "./ReviewPanel";
 import TerraformPanel from "./TerraformPanel";
@@ -24,6 +22,12 @@ import { Button } from "@/components/ui/button";
 
 interface DiscoveryRightPanelProps {
   projectId: string;
+  selectedPhase: PhaseKey;
+  onPhaseSelect: (key: PhaseKey) => void;
+  architectureTriggered: boolean;
+  isReadyForArchitecture: boolean;
+  onStartArchitecture?: () => Promise<void>;
+  isSkippingToArchitecture?: boolean;
   session: DiscoverySession | null;
   checklist: ChecklistItem[];
   readiness: Readiness | null;
@@ -59,6 +63,12 @@ function getLastAssistantMessage(messages: DiscoveryChatMessage[]): string | und
 
 const DiscoveryRightPanel = ({
   projectId,
+  selectedPhase,
+  onPhaseSelect,
+  architectureTriggered,
+  isReadyForArchitecture,
+  onStartArchitecture,
+  isSkippingToArchitecture = false,
   session,
   checklist,
   readiness,
@@ -73,26 +83,8 @@ const DiscoveryRightPanel = ({
   onRetry,
   refetchContext,
 }: DiscoveryRightPanelProps) => {
-  const [selectedPhase, setSelectedPhase] = useState<PhaseKey>("discovery");
   const [isLinkingRepo, setIsLinkingRepo] = useState(false);
   const [linkRepoError, setLinkRepoError] = useState<string | null>(null);
-  const [architectureTriggered, setArchitectureTriggered] = useState(false);
-  const [isSkippingToArchitecture, setIsSkippingToArchitecture] = useState(false);
-
-  const hasRepoUrl = !!(
-    context?.repo_url?.trim() ||
-    checklist.find(
-      (c) =>
-        (c.key === "repo_url" || c.key === "repository") &&
-        c.status === "confirmed"
-    )?.evidence?.trim()
-  );
-
-  const isReadyForArchitecture =
-    architectureTriggered ||
-    ((readiness?.status === "maybe_ready" ||
-      readiness?.status === "ready_for_architecture") &&
-      hasRepoUrl);
 
   const repoUrl =
     context?.repo_url?.trim() ||
@@ -126,21 +118,6 @@ const DiscoveryRightPanel = ({
     [projectId, refetchContext]
   );
 
-  const handleStartArchitecture = useCallback(async () => {
-    setIsSkippingToArchitecture(true);
-    try {
-      await startArchitecture(projectId);
-      setArchitectureTriggered(true);
-      refetchContext?.();
-      setSelectedPhase("architecture");
-    } catch (e) {
-      const msg =
-        e instanceof Error ? e.message : "Não foi possível iniciar a arquitetura.";
-      toast.error(msg);
-    } finally {
-      setIsSkippingToArchitecture(false);
-    }
-  }, [projectId, refetchContext]);
   const firstReadyPhase: PhaseKey = (() => {
     const keys: PhaseKey[] = ["discovery", "architecture", "review", "terraform"];
     return keys.find((k) => isPhaseReady(k, readiness, currentState, isReadyForArchitecture)) ?? "discovery";
@@ -148,9 +125,9 @@ const DiscoveryRightPanel = ({
 
   useEffect(() => {
     if (!isPhaseReady(selectedPhase, readiness, currentState, isReadyForArchitecture)) {
-      setSelectedPhase(firstReadyPhase);
+      onPhaseSelect(firstReadyPhase);
     }
-  }, [selectedPhase, readiness, currentState, isReadyForArchitecture, firstReadyPhase]);
+  }, [selectedPhase, readiness, currentState, isReadyForArchitecture, firstReadyPhase, onPhaseSelect]);
 
   const { projectName: ctxProjectName, projectSummary: ctxProjectSummary } =
     getProjectFromContext(context);
@@ -162,15 +139,7 @@ const DiscoveryRightPanel = ({
     <div className="flex h-full flex-col bg-surface-sunken">
       <div className="flex-1 overflow-hidden flex flex-col">
         <div className="flex-1 overflow-y-auto p-5">
-          <PhasePipeline
-            currentState={currentState}
-            readiness={readiness}
-            isReadyForArchitecture={isReadyForArchitecture}
-            selectedPhase={selectedPhase}
-            onPhaseSelect={setSelectedPhase}
-          />
-
-          <div className="mt-5">
+          <div>
             {selectedPhase === "discovery" && (
               <>
                 {error ? (
@@ -186,14 +155,11 @@ const DiscoveryRightPanel = ({
                       projectId={projectId}
                       repoUrl={repoUrl}
                       readiness={readiness}
-                      hasArchitectureResult={currentState === "architecture_ready"}
                       onRepoLinked={refetchContext}
                       isLoading={isLoading}
                       isLinking={isLinkingRepo}
                       linkError={linkRepoError}
                       onLinkRepo={handleLinkRepo}
-                      onSkipToArchitecture={handleStartArchitecture}
-                      isSkippingToArchitecture={isSkippingToArchitecture}
                     />
 
                     <WhatWeUnderstandPanel
@@ -240,7 +206,7 @@ const DiscoveryRightPanel = ({
                   architectureStatus={
                     isArchitectureInProgress ? "in_progress" : "not_started"
                   }
-                  onStartArchitecture={handleStartArchitecture}
+                  onStartArchitecture={onStartArchitecture}
                 />
               </div>
             )}

@@ -13,39 +13,26 @@ function isValidGitHubUrl(url: string): boolean {
   return GITHUB_URL_PATTERN.test(trimmed);
 }
 
-function canAccessArchitecture(readiness: Readiness | null): boolean {
-  return (
-    readiness?.status === "maybe_ready" ||
-    readiness?.status === "ready_for_architecture"
-  );
-}
-
 interface GitHubRepoPanelProps {
   projectId: string;
   repoUrl: string | null;
   readiness?: Readiness | null;
-  hasArchitectureResult?: boolean;
   onRepoLinked?: () => void;
   isLoading?: boolean;
   isLinking?: boolean;
   linkError?: string | null;
   onLinkRepo: (url: string) => Promise<void>;
-  onSkipToArchitecture?: () => Promise<void>;
-  isSkippingToArchitecture?: boolean;
 }
 
 const GitHubRepoPanel = ({
   projectId,
   repoUrl,
   readiness = null,
-  hasArchitectureResult = false,
   onRepoLinked,
   isLoading = false,
   isLinking = false,
   linkError = null,
   onLinkRepo,
-  onSkipToArchitecture,
-  isSkippingToArchitecture = false,
 }: GitHubRepoPanelProps) => {
   const [inputUrl, setInputUrl] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
@@ -103,26 +90,6 @@ const GitHubRepoPanel = ({
           <p className="mt-1 break-all text-sm font-medium text-foreground">
             {repoUrl}
           </p>
-          {canAccessArchitecture(readiness) &&
-            !hasArchitectureResult &&
-            onSkipToArchitecture && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="mt-3"
-              onClick={onSkipToArchitecture}
-              disabled={isSkippingToArchitecture}
-            >
-              {isSkippingToArchitecture ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Iniciando...
-                </>
-              ) : (
-                "Pular para arquitetura"
-              )}
-            </Button>
-          )}
         </>
       ) : (
         <>

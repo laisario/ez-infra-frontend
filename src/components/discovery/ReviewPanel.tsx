@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import {
+  ApiError,
   getArchitectureResult,
-  postRevisionDecision,
+  getRevisionDecision,
+  putRevisionDecision,
   type ArchitectureResult,
   type RevisionOption,
   type VibeOption,
@@ -106,6 +108,20 @@ function ArchitectureOptionCard({
   );
 }
 
+function getSubmitErrorMessage(e: unknown): string {
+  if (e instanceof ApiError) {
+    if (e.status === 404) return "Projeto não encontrado.";
+    if (e.status === 400)
+      return "Gere a arquitetura antes de escolher uma opção.";
+    if (e.status === 422)
+      return "Valor inválido. Use uma das opções disponíveis.";
+  }
+  return (
+    (e instanceof Error ? e.message : null) ??
+    "Não foi possível enviar a decisão. Tente novamente."
+  );
+}
+
 const ReviewPanel = ({ projectId }: ReviewPanelProps) => {
   const [result, setResult] = useState<ArchitectureResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -148,6 +164,25 @@ const ReviewPanel = ({ projectId }: ReviewPanelProps) => {
     };
   }, [projectId]);
 
+  useEffect(() => {
+    if (!projectId || !result) return;
+
+    let cancelled = false;
+    getRevisionDecision(projectId)
+      .then((res) => {
+        if (!cancelled && res.decision) {
+          setSelectedOption(res.decision);
+        }
+      })
+      .catch(() => {
+        // Ignore; no pre-selection
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, result]);
+
   const handleRetry = () => {
     setError(null);
     setIsLoading(true);
@@ -167,14 +202,11 @@ const ReviewPanel = ({ projectId }: ReviewPanelProps) => {
     setSubmitStatus("loading");
     setSubmitError(null);
     try {
-      await postRevisionDecision(projectId, selectedOption);
+      await putRevisionDecision(projectId, selectedOption);
       setSubmitStatus("success");
     } catch (e) {
       setSubmitStatus("error");
-      setSubmitError(
-        e?.message ??
-          "Não foi possível enviar a decisão. Tente novamente."
-      );
+      setSubmitError(getSubmitErrorMessage(e));
     }
   };
 
