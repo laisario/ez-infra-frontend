@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import type {
   DiscoverySession,
   ChecklistItem,
@@ -6,16 +7,16 @@ import type {
   DiscoveryChatMessage,
 } from "@/lib/api/types";
 import type { ContextResponse } from "@/lib/api/discoveryClient";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReadinessPanel from "./ReadinessPanel";
 import ChecklistPanel from "./ChecklistPanel";
 import WhatWeUnderstandPanel from "./WhatWeUnderstandPanel";
 import NextBestStepPanel from "./NextBestStepPanel";
 import RecentActivityPanel from "./RecentActivityPanel";
 import PhasePipeline from "./PhasePipeline";
-import PreviewPanel from "@/components/PreviewPanel";
+import DiagramsPanel from "./DiagramsPanel";
+import TerraformPanel from "./TerraformPanel";
+import { isPhaseReady, type PhaseKey } from "./PhasePipeline";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, ListChecks } from "lucide-react";
 
 interface DiscoveryRightPanelProps {
   projectId: string;
@@ -66,8 +67,22 @@ const DiscoveryRightPanel = ({
   error,
   onRetry,
 }: DiscoveryRightPanelProps) => {
+  const [selectedPhase, setSelectedPhase] = useState<PhaseKey>("discovery");
+
   const isReadyForArchitecture =
     readiness?.status === "ready_for_architecture";
+
+  const currentState = session?.state ?? null;
+  const firstReadyPhase: PhaseKey = (() => {
+    const keys: PhaseKey[] = ["discovery", "architecture", "review", "terraform"];
+    return keys.find((k) => isPhaseReady(k, readiness, currentState)) ?? "discovery";
+  })();
+
+  useEffect(() => {
+    if (!isPhaseReady(selectedPhase, readiness, currentState)) {
+      setSelectedPhase(firstReadyPhase);
+    }
+  }, [selectedPhase, readiness, currentState, firstReadyPhase]);
 
   const { projectName: ctxProjectName, projectSummary: ctxProjectSummary } =
     getProjectFromContext(context);
@@ -77,104 +92,83 @@ const DiscoveryRightPanel = ({
 
   return (
     <div className="flex h-full flex-col bg-surface-sunken">
-      <Tabs defaultValue="discovery" className="flex h-full flex-col">
-        <div className="border-b bg-card px-5 py-4">
-          <TabsList className="w-full">
-            <TabsTrigger value="discovery" className="flex-1 gap-2">
-              <ListChecks className="h-4 w-4" />
-              Descoberta
-            </TabsTrigger>
-            <TabsTrigger
-              value="architecture"
-              disabled={!isReadyForArchitecture}
-              className="flex-1 gap-2"
-            >
-              <LayoutGrid className="h-4 w-4" />
-              Arquitetura
-              {!isReadyForArchitecture && (
-                <span className="text-[10px] text-muted-foreground">
-                  (em breve)
-                </span>
-              )}
-            </TabsTrigger>
-          </TabsList>
-        </div>
+      <div className="flex-1 overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-y-auto p-5">
+          <PhasePipeline
+            currentState={currentState}
+            readiness={readiness}
+            isReadyForArchitecture={isReadyForArchitecture}
+            selectedPhase={selectedPhase}
+            onPhaseSelect={setSelectedPhase}
+          />
 
-        <div className="flex-1 overflow-hidden flex flex-col">
-          <TabsContent
-            value="discovery"
-            className="mt-0 flex-1 overflow-y-auto p-5 data-[state=inactive]:hidden"
-          >
-            {error ? (
-              <div className="flex flex-col items-center gap-3 rounded-xl border bg-card p-6 text-center">
-                <p className="text-sm text-destructive">{error}</p>
-                <Button variant="outline" size="sm" onClick={onRetry}>
-                  Tentar novamente
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-5">
-                <PhasePipeline
-                  currentState={session?.state ?? null}
-                  isReadyForArchitecture={isReadyForArchitecture}
-                />
+          <div className="mt-5">
+            {selectedPhase === "discovery" && (
+              <>
+                {error ? (
+                  <div className="flex flex-col items-center gap-3 rounded-xl border bg-card p-6 text-center">
+                    <p className="text-sm text-destructive">{error}</p>
+                    <Button variant="outline" size="sm" onClick={onRetry}>
+                      Tentar novamente
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-5">
+                    <WhatWeUnderstandPanel
+                      checklist={checklist}
+                      readiness={readiness}
+                      context={context}
+                      projectName={projectName}
+                      projectSummary={projectSummary}
+                    />
 
-                <WhatWeUnderstandPanel
-                  checklist={checklist}
-                  readiness={readiness}
-                  context={context}
-                  projectName={projectName}
-                  projectSummary={projectSummary}
-                />
+                    <NextBestStepPanel
+                      questions={questions}
+                      readiness={readiness}
+                      checklist={checklist}
+                      lastAssistantMessage={lastAssistantMessage}
+                      nextBestStep={context?.next_best_step}
+                    />
 
-                <NextBestStepPanel
-                  questions={questions}
-                  readiness={readiness}
-                  checklist={checklist}
-                  lastAssistantMessage={lastAssistantMessage}
-                  nextBestStep={context?.next_best_step}
-                />
+                    <ReadinessPanel readiness={readiness} />
+                    <ChecklistPanel checklist={checklist} />
 
-                <ReadinessPanel readiness={readiness} />
+                    <RecentActivityPanel
+                      checklist={checklist}
+                      readiness={readiness}
+                      messages={messages}
+                      activityEvents={activity}
+                    />
+                  </div>
+                )}
+              </>
+            )}
 
-                <ChecklistPanel checklist={checklist} />
+            {selectedPhase === "review" && (
+              <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-muted-foreground/30 bg-card/50 p-8 text-center">
+              <p className="text-sm font-medium text-foreground">
+                Em breve
+              </p>
+              <p className="max-w-[260px] text-xs text-muted-foreground">
+                Esta fase estará disponível em uma próxima atualização.
+              </p>
+            </div>
+            )}
 
-                <RecentActivityPanel
-                  checklist={checklist}
-                  readiness={readiness}
-                  messages={messages}
-                  activityEvents={activity}
-                />
+            {selectedPhase === "architecture" && (
+              <div className="min-h-[200px]">
+                <DiagramsPanel projectId={projectId} />
               </div>
             )}
-          </TabsContent>
 
-          <TabsContent
-            value="architecture"
-            className="mt-0 flex-1 overflow-hidden p-0 data-[state=inactive]:hidden"
-          >
-            {isReadyForArchitecture ? (
-              <div className="h-full">
-                <PreviewPanel
-                  conversationId={projectId}
-                  refreshKey={1}
-                />
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-3 rounded-xl border bg-card p-8 text-center m-5">
-                <LayoutGrid className="h-12 w-12 text-muted-foreground" />
-                <p className="text-sm font-medium text-foreground">
-                  Complete a descoberta primeiro
-                </p>
-                <p className="max-w-[260px] text-xs text-muted-foreground">
-                  Quando o projeto estiver pronto para arquitetura, você poderá
-                  ver e gerar a infraestrutura aqui.
-                </p>
+            {selectedPhase === "terraform" && (
+              <div className="min-h-[200px]">
+                <TerraformPanel projectId={projectId} />
               </div>
             )}
-          </TabsContent>
+          </div>
         </div>
-      </Tabs>
+      </div>
     </div>
   );
 };

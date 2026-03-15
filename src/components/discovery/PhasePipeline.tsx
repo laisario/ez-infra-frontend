@@ -1,9 +1,33 @@
-import type { DiscoveryState } from "@/lib/api/types";
+import type { DiscoveryState, Readiness } from "@/lib/api/types";
 import { Check, MessageSquare, LayoutGrid, Eye, Code2 } from "lucide-react";
+
+export const PHASE_KEYS = ["discovery", "architecture", "review", "terraform"] as const;
+export type PhaseKey = (typeof PHASE_KEYS)[number];
+
+export function isPhaseReady(
+  phaseKey: PhaseKey,
+  readiness: Readiness | null,
+  currentState: DiscoveryState | null
+): boolean {
+  switch (phaseKey) {
+    case "discovery":
+      return true;
+    case "architecture":
+      return readiness?.status === "ready_for_architecture";
+    case "review":
+    case "terraform":
+      return currentState === "architecture_ready";
+    default:
+      return false;
+  }
+}
 
 interface PhasePipelineProps {
   currentState: DiscoveryState | null;
+  readiness?: Readiness | null;
   isReadyForArchitecture?: boolean;
+  selectedPhase?: PhaseKey;
+  onPhaseSelect?: (key: PhaseKey) => void;
 }
 
 const PHASES = [
@@ -45,7 +69,10 @@ const discoveryStates: DiscoveryState[] = [
 
 const PhasePipeline = ({
   currentState,
+  readiness = null,
   isReadyForArchitecture = false,
+  selectedPhase = "discovery",
+  onPhaseSelect,
 }: PhasePipelineProps) => {
   const discoveryComplete = discoveryStates.includes(
     currentState ?? "idle"
@@ -54,6 +81,13 @@ const PhasePipeline = ({
     : false;
 
   const currentPhaseIndex = discoveryComplete ? 1 : 0;
+  const selectedIndex = PHASES.findIndex((p) => p.key === selectedPhase);
+  const activeIndex = selectedIndex >= 0 ? selectedIndex : 0;
+  const isActive = (i: number) => i === activeIndex;
+  const isPast = (i: number) => i < currentPhaseIndex;
+
+  const phaseReady = (key: PhaseKey) =>
+    isPhaseReady(key, readiness, currentState);
 
   return (
     <div className="rounded-xl border bg-card p-4 shadow-sm">
@@ -65,27 +99,53 @@ const PhasePipeline = ({
       </p>
       <div className="mt-4 flex flex-col gap-3">
         {PHASES.map((phase, i) => {
-          const isActive = i === currentPhaseIndex;
-          const isPast = i < currentPhaseIndex;
+          const active = isActive(i);
+          const past = isPast(i);
+          const ready = phaseReady(phase.key);
           const Icon = phase.icon;
+          const isClickable = !!onPhaseSelect && ready;
 
           return (
             <div
               key={phase.key}
+              role={isClickable ? "button" : undefined}
+              tabIndex={isClickable ? 0 : undefined}
+              onClick={
+                isClickable ? () => onPhaseSelect(phase.key) : undefined
+              }
+              onKeyDown={
+                isClickable
+                  ? (e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onPhaseSelect(phase.key);
+                      }
+                    }
+                  : undefined
+              }
+              aria-disabled={!ready}
               className={`flex items-start gap-3 rounded-lg px-3 py-2 ${
-                isActive ? "bg-primary/10" : "bg-transparent"
+                active ? "bg-primary/10" : "bg-transparent"
+              } ${
+                ready && onPhaseSelect
+                  ? "cursor-pointer hover:bg-muted/50"
+                  : !ready
+                    ? "cursor-not-allowed opacity-60"
+                    : ""
               }`}
             >
               <div
                 className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                  isPast
+                  past
                     ? "bg-primary text-primary-foreground"
-                    : isActive
+                    : active
                       ? "bg-primary/20 text-primary"
-                      : "bg-muted text-muted-foreground"
+                      : ready
+                        ? "bg-muted text-muted-foreground"
+                        : "bg-muted/50 text-muted-foreground/60"
                 }`}
               >
-                {isPast ? (
+                {past ? (
                   <Check className="h-4 w-4" />
                 ) : (
                   <Icon className="h-4 w-4" />
@@ -94,7 +154,7 @@ const PhasePipeline = ({
               <div className="min-w-0 flex-1">
                 <p
                   className={`text-sm font-medium ${
-                    isActive ? "text-foreground" : "text-muted-foreground"
+                    active ? "text-foreground" : "text-muted-foreground"
                   }`}
                 >
                   {phase.label}

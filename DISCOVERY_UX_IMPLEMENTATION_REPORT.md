@@ -30,11 +30,11 @@ The frontend has been updated to consume the enriched Discovery API:
 
 - **RecentActivityPanel** (novo): Painel de "Atividade recente" com itens derivados de checklist, readiness e mensagens. Exibe progresso (ex: "Objetivo do produto identificado", "Repositório conectado").
 
-- **PhasePipeline** (novo): Pipeline visual das fases: Descoberta → Arquitetura → Revisão → Terraform, com subtítulos explicativos para cada etapa.
-
 - **DiscoveryChat** (copy atualizado): Header "Assistente de descoberta", subtítulo "Transformando sua ideia em contexto técnico pronto para arquitetura", placeholders e empty states revisados.
 
-- **DiscoveryRightPanel** (reestruturado): Nova ordem dos blocos (PhasePipeline, WhatWeUnderstand, NextBestStep, Readiness, Checklist, RecentActivity) e integração com context e messages.
+- **DiscoveryRightPanel** (reestruturado): Tabs Discovery, Revisão, Arquitetura. Discovery: WhatWeUnderstand, NextBestStep, Readiness, RecentActivity. Revisão: ChecklistPanel. Arquitetura: DiagramsPanel (GET /projects/:id/diagrams).
+
+- **DiagramsPanel** (novo): Carrega diagramas via GET /projects/:id/diagrams; estados de loading, vazio e erro.
 
 ### Integração com API
 
@@ -81,9 +81,9 @@ The frontend has been updated to consume the enriched Discovery API:
 | ReadinessPanel | "Prontidão para arquitetura", "Em descoberta", "Precisa de esclarecimento", "Quase pronto", "Pronto para arquitetura", "cobertura", "itens críticos pendentes", "Perguntas em aberto" |
 | ChecklistPanel | "Progresso da descoberta", "Confirmado", "Inferido", "Pendente", "Conflitante", labels de keys (Objetivo do produto, Público-alvo, etc.) |
 | RecentActivityPanel | "Atividade recente", "As atualizações aparecerão aqui..." |
-| PhasePipeline | "Pipeline do projeto", "Da ideia à infraestrutura em produção", "Descoberta", "Arquitetura", "Revisão", "Terraform", subtítulos de cada fase |
 | DiscoveryChat | "Assistente de descoberta", "Transformando sua ideia em contexto técnico pronto para arquitetura", placeholders e empty states |
-| DiscoveryRightPanel | "Descoberta", "Arquitetura", "(em breve)", "Complete a descoberta primeiro" |
+| DiscoveryRightPanel | "Discovery", "Revisão", "Arquitetura" |
+| DiagramsPanel | "Carregando diagramas...", "Nenhum diagrama ainda", "Complete a descoberta e a revisão para gerar os diagramas" |
 | DiscoveryPage (start mode) | "Estamos coletando as informações necessárias para desenhar sua arquitetura de nuvem..." |
 
 ---

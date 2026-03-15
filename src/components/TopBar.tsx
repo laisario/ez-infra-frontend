@@ -13,14 +13,6 @@ const TopBar = () => {
         <h1 className="text-lg font-semibold tracking-tight text-foreground">
           Cloud Generation
         </h1>
-
-      </div>
-
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" disabled>
-          <Download className="mr-1.5 h-3.5 w-3.5" />
-          Exportar Terraform
-        </Button>
       </div>
     </header>
   );

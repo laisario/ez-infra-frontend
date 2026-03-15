@@ -116,3 +116,37 @@ export async function getActivity(
     return { events: [] };
   }
 }
+
+export interface Diagram {
+  id?: string;
+  name?: string;
+  type?: string;
+  content?: string;
+  [key: string]: unknown;
+}
+
+export interface DiagramsResponse {
+  diagrams?: Diagram[];
+}
+
+export async function getDiagrams(
+  projectId: string
+): Promise<DiagramsResponse> {
+  return request<DiagramsResponse>(`/projects/${projectId}/architecture-result`);
+}
+
+export type { TerraformFile } from "./terraform";
+export { adaptTerraformResponse } from "./terraform";
+
+import type { TerraformFile } from "./terraform";
+import { adaptTerraformResponse } from "./terraform";
+import { MOCK_TERRAFORM_FILES } from "./mock-terraform";
+
+export async function getTerraformFiles(projectId: string): Promise<TerraformFile[]> {
+  try {
+    const raw = await request<unknown>(`/projects/${projectId}/terraform`);
+    return adaptTerraformResponse(raw);
+  } catch {
+    return MOCK_TERRAFORM_FILES;
+  }
+}
