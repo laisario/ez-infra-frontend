@@ -342,6 +342,21 @@ export function useDiscoveryChat(
 
         case "pong":
           break;
+
+        case "project.repo_updated":
+        case "project.repo.updated":
+        case "project_repo_updated": {
+          refetchContext();
+          break;
+        }
+
+        default: {
+          const t = (msg as { type?: string }).type;
+          if (typeof t === "string" && /repo.*updated|project.*repo/i.test(t)) {
+            refetchContext();
+          }
+          break;
+        }
       }
     },
     [projectId, send, pendingMessage, onPendingMessageConsumed, refetchContext]

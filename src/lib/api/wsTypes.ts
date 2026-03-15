@@ -83,6 +83,11 @@ export interface WsPong {
   data: Record<string, never>;
 }
 
+export interface WsProjectRepoUpdated {
+  type: "project.repo_updated" | "project.repo.updated" | "project_repo_updated";
+  data: { repo_url?: string };
+}
+
 export type WsIncomingMessage =
   | WsConnectionReady
   | WsMessageAccepted
@@ -96,7 +101,8 @@ export type WsIncomingMessage =
   | WsQuestionAsked
   | WsQuestionAnswered
   | WsError
-  | WsPong;
+  | WsPong
+  | WsProjectRepoUpdated;
 
 // --- Outgoing events (client -> server) ---
 export interface WsMessageCreate {
