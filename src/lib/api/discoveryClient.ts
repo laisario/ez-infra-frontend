@@ -182,8 +182,22 @@ import type { ArchitectureResult, RevisionOption } from "./architectureResult";
 export async function getArchitectureResult(
   projectId: string
 ): Promise<ArchitectureResult | null> {
-  const raw = await request<unknown>(`/projects/${projectId}/architecture-result`);
-  return adaptArchitectureResult(raw);
+  try {
+    const raw = await request<unknown>(
+      `/projects/${projectId}/architecture-result`
+    );
+    return adaptArchitectureResult(raw);
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) {
+      return null;
+    }
+    throw e;
+  }
+}
+
+/** Maps UI option to backend value (vibe-economica / vibe-performace) */
+function toBackendOption(option: RevisionOption): string {
+  return option === "vibe_economica" ? "vibe-economica" : "vibe-performace";
 }
 
 export async function postRevisionDecision(
@@ -192,6 +206,6 @@ export async function postRevisionDecision(
 ): Promise<void> {
   await request(`/projects/${projectId}/revision-decision`, {
     method: "POST",
-    body: JSON.stringify({ selected_option: selectedOption }),
+    body: JSON.stringify({ selected_option: toBackendOption(selectedOption) }),
   });
 }

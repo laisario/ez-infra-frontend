@@ -78,7 +78,7 @@ export function useDiscoveryChat(
           const msg = JSON.parse(event.data) as WsIncomingMessage;
           handleMessage(msg);
         } catch {
-          // ignore parse errors
+          void 0;
         }
       },
       onOpen: () => {
@@ -184,7 +184,6 @@ export function useDiscoveryChat(
         }
 
         case "message.accepted": {
-          // Optional: replace optimistic user message id with server id
           const serverId = msg.data.user_message_id;
           if (serverId) {
             setMessages((prev) =>
@@ -255,7 +254,6 @@ export function useDiscoveryChat(
         }
 
         case "checklist.progress":
-          // Optional: could show progress in UI
           break;
 
         case "checklist.updated": {

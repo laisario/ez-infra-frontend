@@ -185,6 +185,8 @@ const DiscoveryRightPanel = ({
                     <GitHubRepoPanel
                       projectId={projectId}
                       repoUrl={repoUrl}
+                      readiness={readiness}
+                      hasArchitectureResult={currentState === "architecture_ready"}
                       onRepoLinked={refetchContext}
                       isLoading={isLoading}
                       isLinking={isLinkingRepo}

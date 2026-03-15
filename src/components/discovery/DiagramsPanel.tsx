@@ -1,9 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
-import { getDiagrams, type Diagram } from "@/lib/api/discoveryClient";
+import {
+  getArchitectureResult,
+  type ArchitectureResult,
+} from "@/lib/api/discoveryClient";
+import ArchitectureVibeGraph from "./ArchitectureVibeGraph";
 import { Button } from "@/components/ui/button";
-import { LayoutGrid, Loader2 } from "lucide-react";
+import { LayoutGrid, Loader2, PiggyBank, Zap } from "lucide-react";
 
 const POLL_INTERVAL_MS = 5000;
+
+function hasValidResult(data: ArchitectureResult | null): boolean {
+  return !!(
+    data &&
+    (data.vibeEconomica?.recursos?.length || data.vibePerformance?.recursos?.length)
+  );
+}
 
 interface DiagramsPanelProps {
   projectId: string;
@@ -18,14 +29,14 @@ const DiagramsPanel = ({
   architectureStatus = "not_started",
   onStartArchitecture,
 }: DiagramsPanelProps) => {
-  const [diagrams, setDiagrams] = useState<Diagram[]>([]);
+  const [result, setResult] = useState<ArchitectureResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
 
-  const fetchDiagrams = useCallback(() => {
-    if (!projectId) return Promise.resolve([]);
-    return getDiagrams(projectId).then((res) => res.diagrams ?? []);
+  const fetchResult = useCallback(() => {
+    if (!projectId) return Promise.resolve(null);
+    return getArchitectureResult(projectId);
   }, [projectId]);
 
   useEffect(() => {
@@ -38,48 +49,67 @@ const DiagramsPanel = ({
     setIsLoading(true);
     setError(null);
 
-    fetchDiagrams()
-      .then((d) => {
-        if (!cancelled) setDiagrams(d);
+    fetchResult()
+      .then((data) => {
+        if (cancelled) return;
+        if (hasValidResult(data)) {
+          setResult(data);
+          setIsLoading(false);
+          return;
+        }
+        if (data === null && canStartArchitecture && onStartArchitecture) {
+          onStartArchitecture()
+            .then(() => fetchResult())
+            .then((retryData) => {
+              if (!cancelled && hasValidResult(retryData)) setResult(retryData);
+            })
+            .catch(() => {
+              if (!cancelled) {
+                setError(
+                  "Não foi possível carregar a arquitetura. Tente novamente."
+                );
+              }
+            })
+            .finally(() => {
+              if (!cancelled) setIsLoading(false);
+            });
+        } else {
+          setResult(data);
+          setIsLoading(false);
+        }
       })
       .catch((e) => {
         if (!cancelled) {
           setError(
-            e?.message ?? "Não foi possível carregar os diagramas. Tente novamente."
+            e?.message ??
+              "Não foi possível carregar a arquitetura. Tente novamente."
           );
-          setDiagrams([]);
+          setResult(null);
+          setIsLoading(false);
         }
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [projectId, fetchDiagrams]);
-
-  const isArchitectureInProgress =
-    architectureStatus === "in_progress" && diagrams.length === 0;
+  }, [projectId, canStartArchitecture, onStartArchitecture, fetchResult]);
 
   useEffect(() => {
-    if (!projectId || !isArchitectureInProgress) return;
+    if (
+      !projectId ||
+      architectureStatus !== "in_progress" ||
+      hasValidResult(result)
+    )
+      return;
 
     const interval = setInterval(() => {
-      fetchDiagrams()
-        .then((d) => {
-          if (d.length > 0) {
-            setDiagrams(d);
-            setError(null);
-          }
-        })
-        .catch(() => {
-          // Ignore poll errors; keep waiting
-        });
+      fetchResult().then((data) => {
+        if (hasValidResult(data)) setResult(data);
+      });
     }, POLL_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [projectId, isArchitectureInProgress, fetchDiagrams]);
+  }, [projectId, architectureStatus, result, fetchResult]);
 
   const handleStartArchitecture = async () => {
     if (!onStartArchitecture || isStarting) return;
@@ -94,17 +124,19 @@ const DiagramsPanel = ({
   const handleRetry = () => {
     setError(null);
     setIsLoading(true);
-    fetchDiagrams()
-      .then((d) => {
-        setDiagrams(d);
-      })
+    fetchResult()
+      .then(setResult)
       .catch((e) =>
         setError(
-          e?.message ?? "Não foi possível carregar os diagramas. Tente novamente."
+          e?.message ??
+            "Não foi possível carregar a arquitetura. Tente novamente."
         )
       )
       .finally(() => setIsLoading(false));
   };
+
+  const isArchitectureInProgress =
+    architectureStatus === "in_progress" && !result;
 
   if (isArchitectureInProgress) {
     return (
@@ -124,7 +156,7 @@ const DiagramsPanel = ({
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">Carregando diagramas...</p>
+        <p className="text-sm text-muted-foreground">Carregando arquitetura...</p>
       </div>
     );
   }
@@ -140,7 +172,7 @@ const DiagramsPanel = ({
     );
   }
 
-  if ((!diagrams || diagrams.length === 0) && canStartArchitecture) {
+  if ((!result || (!result.vibeEconomica?.recursos?.length && !result.vibePerformance?.recursos?.length)) && canStartArchitecture) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary">
@@ -170,18 +202,17 @@ const DiagramsPanel = ({
     );
   }
 
-  if (!diagrams || diagrams.length === 0) {
+  if (!result || (!result.vibeEconomica?.recursos?.length && !result.vibePerformance?.recursos?.length)) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary">
           <LayoutGrid className="h-6 w-6 text-muted-foreground" />
         </div>
         <h3 className="text-sm font-semibold text-foreground">
-          Nenhum diagrama ainda
+          Nenhuma arquitetura ainda
         </h3>
         <p className="max-w-[260px] text-xs text-muted-foreground">
-          Complete a descoberta e a revisão para gerar os diagramas de
-          arquitetura.
+          Complete a descoberta e inicie a arquitetura para ver as opções.
         </p>
       </div>
     );
@@ -189,22 +220,73 @@ const DiagramsPanel = ({
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto p-5">
-      <div className="space-y-4">
-        {diagrams.map((d, i) => (
-          <div
-            key={d.id ?? i}
-            className="rounded-xl border bg-card p-4 shadow-sm"
-          >
-            <h4 className="text-sm font-medium text-foreground">
-              {d.name ?? d.type ?? `Diagrama ${i + 1}`}
+      <div className="space-y-6">
+        {result.analiseEntrada && (
+          <div className="rounded-xl border bg-card p-4 shadow-sm">
+            <h4 className="text-sm font-semibold text-foreground">
+              Análise de entrada
             </h4>
-            {d.content && (
-              <pre className="mt-2 max-h-48 overflow-auto rounded bg-muted p-3 text-xs text-muted-foreground">
-                {d.content}
-              </pre>
-            )}
+            <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+              {result.analiseEntrada}
+            </p>
           </div>
-        ))}
+        )}
+
+        {result.vibeEconomica?.recursos?.length ? (
+          <div className="rounded-xl border bg-card p-4 shadow-sm">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <PiggyBank className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">
+                  Arquitetura econômica
+                </h4>
+                {result.vibeEconomica.descricao && (
+                  <p className="text-[11px] text-muted-foreground">
+                    {result.vibeEconomica.descricao}
+                  </p>
+                )}
+                {result.vibeEconomica.custo_estimado && (
+                  <p className="mt-0.5 text-[11px] font-medium text-foreground">
+                    Custo estimado: {result.vibeEconomica.custo_estimado}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="mt-4">
+              <ArchitectureVibeGraph recursos={result.vibeEconomica.recursos} />
+            </div>
+          </div>
+        ) : null}
+
+        {result.vibePerformance?.recursos?.length ? (
+          <div className="rounded-xl border bg-card p-4 shadow-sm">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Zap className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">
+                  Arquitetura performance
+                </h4>
+                {result.vibePerformance.descricao && (
+                  <p className="text-[11px] text-muted-foreground">
+                    {result.vibePerformance.descricao}
+                  </p>
+                )}
+                {result.vibePerformance.custo_estimado && (
+                  <p className="mt-0.5 text-[11px] font-medium text-foreground">
+                    Custo estimado: {result.vibePerformance.custo_estimado}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="mt-4">
+              <ArchitectureVibeGraph recursos={result.vibePerformance.recursos} />
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

@@ -139,13 +139,13 @@ const PhasePipeline = ({
                     }
                   : undefined
               }
-              aria-disabled={!ready}
+              aria-disabled={!phaseReady(phase.key)}
               className={`flex items-start gap-3 rounded-lg px-3 py-2 ${
                 active ? "bg-primary/10" : "bg-transparent"
               } ${
                 ready && onPhaseSelect
                   ? "cursor-pointer hover:bg-muted/50"
-                  : !ready
+                  : !phaseReady(phase.key)
                     ? "cursor-not-allowed opacity-60"
                     : ""
               }`}

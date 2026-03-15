@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link2, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import type { Readiness } from "@/lib/api/types";
 
 const GITHUB_URL_PATTERN =
   /^https?:\/\/(www\.)?github\.com\/[\w.-]+\/[\w.-]+(\/)?$/i;
@@ -12,9 +13,18 @@ function isValidGitHubUrl(url: string): boolean {
   return GITHUB_URL_PATTERN.test(trimmed);
 }
 
+function canAccessArchitecture(readiness: Readiness | null): boolean {
+  return (
+    readiness?.status === "maybe_ready" ||
+    readiness?.status === "ready_for_architecture"
+  );
+}
+
 interface GitHubRepoPanelProps {
   projectId: string;
   repoUrl: string | null;
+  readiness?: Readiness | null;
+  hasArchitectureResult?: boolean;
   onRepoLinked?: () => void;
   isLoading?: boolean;
   isLinking?: boolean;
@@ -27,6 +37,8 @@ interface GitHubRepoPanelProps {
 const GitHubRepoPanel = ({
   projectId,
   repoUrl,
+  readiness = null,
+  hasArchitectureResult = false,
   onRepoLinked,
   isLoading = false,
   isLinking = false,
@@ -91,7 +103,9 @@ const GitHubRepoPanel = ({
           <p className="mt-1 break-all text-sm font-medium text-foreground">
             {repoUrl}
           </p>
-          {onSkipToArchitecture && (
+          {canAccessArchitecture(readiness) &&
+            !hasArchitectureResult &&
+            onSkipToArchitecture && (
             <Button
               size="sm"
               variant="outline"

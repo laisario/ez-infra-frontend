@@ -1,74 +1,73 @@
-# Welcome to your Lovable project
+# VibeCloud Frontend
 
-## Project info
+## Project Description
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+VibeCloud is a cloud architecture discovery and design tool. It guides users through a conversational discovery process to collect project requirements, link GitHub repositories, and generate cloud architecture diagrams. The frontend provides an AI-assisted discovery chat, checklist-based progress tracking, and visualization of architecture options (including cost vs. performance trade-offs) and Terraform outputs.
 
-## How can I edit this code?
+## Group Members
 
-There are several ways of editing your application.
+- Laísa Rio
+- Lucas Propopio
+- Paulo Boccaletti
 
-**Use Lovable**
+## Technologies Used
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- **Vite** — Build tool and dev server
+- **React 18** — UI framework
+- **TypeScript** — Type safety
+- **Tailwind CSS** — Styling
+- **shadcn/ui** — UI components (Radix primitives)
+- **TanStack Query** — Server state management
+- **React Router** — Routing
+- **ReactFlow** — Diagram visualization
+- **ELK.js** — Graph layout
+- **Recharts** — Charts
+- **Zod** — Schema validation
 
-Changes made via Lovable will be committed automatically to this repo.
+## Setup / Installation
 
-**Use your preferred IDE**
+1. **Prerequisites**: Node.js 18+ and npm (or use [nvm](https://github.com/nvm-sh/nvm) to manage Node versions).
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+2. **Clone the repository**:
+   ```sh
+   git clone <YOUR_GIT_URL>
+   cd vibing-cloud-frontend
+   ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+3. **Install dependencies**:
+   ```sh
+   npm install
+   ```
 
-Follow these steps:
+## How to Run the Project
+
+Start the development server:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app will be available at `http://localhost:8080` (or the port shown in the terminal).
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Other scripts:
 
-**Use GitHub Codespaces**
+- `npm run build` — Production build
+- `npm run preview` — Preview production build locally
+- `npm run lint` — Run ESLint
+- `npm run test` — Run Vitest tests
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## How to Use the Project
 
-## What technologies are used for this project?
+1. **Start a new project**: On the home page, describe your project idea (e.g., name and summary). Submit to create a discovery project.
 
-This project is built with:
+2. **Discovery phase**: Use the chat to answer questions about your project. The assistant collects context about objectives, target audience, tech stack, and more.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+3. **Link GitHub repository**: Paste your GitHub repo URL in the "Repositório no GitHub" panel to enable architecture analysis.
 
-## How can I deploy this project?
+4. **Architecture**: Once discovery is complete and the repo is linked, start the architecture analysis. View diagrams and choose between cost-optimized vs. performance-optimized options.
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+5. **Review & Terraform**: Review the architecture and access generated Terraform files for deployment.
 
-## Can I connect a custom domain to my Lovable project?
+## License
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
-# vibe-cloud-frontend
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.

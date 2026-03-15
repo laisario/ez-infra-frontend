@@ -6,7 +6,8 @@
 
 export interface ArchitectureResource {
   servico: string;
-  config?: Record<string, unknown>;
+  /** Display string (API may return string or object) */
+  config?: string | Record<string, unknown>;
 }
 
 export interface VibeOption {
@@ -21,17 +22,22 @@ export interface ArchitectureResult {
   vibePerformance: VibeOption;
 }
 
+type RawResource = {
+  servico?: string;
+  config?: string | Record<string, unknown>;
+};
+
 type RawOutput = {
   analise_entrada?: string;
   vibe_economica?: {
     descricao?: string;
     custo_estimado?: string;
-    recursos?: Array<{ servico?: string; config?: Record<string, unknown> }>;
+    recursos?: RawResource[];
   };
   vibe_performance?: {
     descricao?: string;
     custo_estimado?: string;
-    recursos?: Array<{ servico?: string; config?: Record<string, unknown> }>;
+    recursos?: RawResource[];
   };
 };
 
@@ -52,9 +58,7 @@ export function adaptArchitectureResult(raw: unknown): ArchitectureResult | null
   const perf = output.vibe_performance;
   if (!econ || !perf) return null;
 
-  const mapResource = (
-    r: { servico?: string; config?: Record<string, unknown> }
-  ): ArchitectureResource => ({
+  const mapResource = (r: RawResource): ArchitectureResource => ({
     servico: String(r.servico ?? ""),
     config: r.config,
   });
