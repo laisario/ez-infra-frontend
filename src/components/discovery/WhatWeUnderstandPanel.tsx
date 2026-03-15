@@ -85,13 +85,7 @@ function deriveUnderstanding(
       source: "inferred",
     });
   }
-  if (context?.overview?.repo_url) {
-    items.push({
-      label: "Repositório",
-      value: context.overview.repo_url,
-      source: "confirmed",
-    });
-  }
+  // Repo is shown in GitHubRepoPanel; skip here to avoid duplication
   if (context?.stack?.languages?.length) {
     items.push({
       label: "Linguagens",
@@ -112,6 +106,7 @@ function deriveUnderstanding(
 
   for (const item of checklist) {
     if (item.status !== "confirmed" && item.status !== "inferred") continue;
+    if (item.key === "repo_url" || item.key === "repository") continue;
     const label = KEY_TO_LABEL[item.key] ?? item.label ?? item.key;
     const value = item.evidence ?? (item.status === "confirmed" ? "Confirmado" : "Inferido");
     if (items.some((i) => i.label === label)) continue;
@@ -123,6 +118,7 @@ function deriveUnderstanding(
   }
 
   for (const key of confirmedKeys) {
+    if (key === "repo_url" || key === "repository") continue;
     if (items.some((i) => KEY_TO_LABEL[key] === i.label || key === i.label)) continue;
     items.push({
       label: KEY_TO_LABEL[key] ?? key,
@@ -131,6 +127,7 @@ function deriveUnderstanding(
     });
   }
   for (const key of inferredKeys) {
+    if (key === "repo_url" || key === "repository") continue;
     if (items.some((i) => KEY_TO_LABEL[key] === i.label || key === i.label)) continue;
     items.push({
       label: KEY_TO_LABEL[key] ?? key,

@@ -119,6 +119,24 @@ export function useDiscoveryChat(
     }
   }, []);
 
+  const refetchContext = useCallback(() => {
+    if (!projectId) return;
+    getContext(projectId)
+      .then((data) => {
+        if (!isMountedRef.current) return;
+        setContext(data);
+        const proj = data?.project;
+        if (proj?.project_name) {
+          setProject((prev) =>
+            prev ? { ...prev, project_name: proj.project_name!, summary: proj.summary } : prev
+          );
+        }
+      })
+      .catch(() => {
+        if (isMountedRef.current) setContext(null);
+      });
+  }, [projectId]);
+
   const handleMessage = useCallback(
     (msg: WsIncomingMessage) => {
       if (!isMountedRef.current) return;
@@ -137,7 +155,9 @@ export function useDiscoveryChat(
                   status: (d.readiness.status as Readiness["status"]) ?? "not_ready",
                   coverage: d.readiness.coverage ?? 0,
                   missing_critical_items:
-                    d.readiness.missing_critical_items ?? d.readiness.missing ?? [],
+                    d.readiness.missing_critical_items ??
+                    (d.readiness as { missing?: string[] }).missing ??
+                    [],
                 }
               : initialReadiness()
           );
@@ -253,6 +273,9 @@ export function useDiscoveryChat(
             }
             return prev;
           });
+          if (key === "repo_url" && status === "confirmed") {
+            refetchContext();
+          }
           break;
         }
 
@@ -321,7 +344,7 @@ export function useDiscoveryChat(
           break;
       }
     },
-    [projectId, send, pendingMessage, onPendingMessageConsumed]
+    [projectId, send, pendingMessage, onPendingMessageConsumed, refetchContext]
   );
 
   const sendMessage = useCallback(
@@ -426,6 +449,7 @@ export function useDiscoveryChat(
     streamingMessage,
     sendMessage,
     refresh,
+    refetchContext,
     isLoading,
     isSending,
     error,

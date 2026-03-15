@@ -96,6 +96,23 @@ export async function getContext(
   return request<ContextResponse>(`/projects/${projectId}/context`);
 }
 
+export async function linkRepo(
+  projectId: string,
+  repoUrl: string
+): Promise<{ repo_url?: string }> {
+  return request(`/projects/${projectId}/repo`, {
+    method: "PATCH",
+    body: JSON.stringify({ repo_url: repoUrl }),
+  });
+}
+
+export async function startArchitecture(projectId: string): Promise<void> {
+  await request(`/projects/${projectId}/start-architecture`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
 export interface ActivityEvent {
   type: string;
   label: string;
@@ -149,4 +166,31 @@ export async function getTerraformFiles(projectId: string): Promise<TerraformFil
   } catch {
     return MOCK_TERRAFORM_FILES;
   }
+}
+
+export type {
+  ArchitectureResult,
+  RevisionOption,
+  VibeOption,
+} from "./architectureResult";
+export { adaptArchitectureResult } from "./architectureResult";
+
+import { adaptArchitectureResult } from "./architectureResult";
+import type { ArchitectureResult, RevisionOption } from "./architectureResult";
+
+export async function getArchitectureResult(
+  projectId: string
+): Promise<ArchitectureResult | null> {
+  const raw = await request<unknown>(`/projects/${projectId}/architecture-result`);
+  return adaptArchitectureResult(raw);
+}
+
+export async function postRevisionDecision(
+  projectId: string,
+  selectedOption: RevisionOption
+): Promise<void> {
+  await request(`/projects/${projectId}/revision-decision`, {
+    method: "POST",
+    body: JSON.stringify({ selected_option: selectedOption }),
+  });
 }

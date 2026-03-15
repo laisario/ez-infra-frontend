@@ -1,17 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getDiagrams, type Diagram } from "@/lib/api/discoveryClient";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Loader2 } from "lucide-react";
 
+const POLL_INTERVAL_MS = 5000;
+
 interface DiagramsPanelProps {
   projectId: string;
+  canStartArchitecture?: boolean;
+  architectureStatus?: "not_started" | "in_progress" | "ready";
+  onStartArchitecture?: () => Promise<void>;
 }
 
-const DiagramsPanel = ({ projectId }: DiagramsPanelProps) => {
+const DiagramsPanel = ({
+  projectId,
+  canStartArchitecture = false,
+  architectureStatus = "not_started",
+  onStartArchitecture,
+}: DiagramsPanelProps) => {
   const [diagrams, setDiagrams] = useState<Diagram[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  console.log(diagrams)
+  const [isStarting, setIsStarting] = useState(false);
+
+  const fetchDiagrams = useCallback(() => {
+    if (!projectId) return Promise.resolve([]);
+    return getDiagrams(projectId).then((res) => res.diagrams ?? []);
+  }, [projectId]);
+
   useEffect(() => {
     if (!projectId) {
       setIsLoading(false);
@@ -22,11 +38,9 @@ const DiagramsPanel = ({ projectId }: DiagramsPanelProps) => {
     setIsLoading(true);
     setError(null);
 
-    getDiagrams(projectId)
-      .then((res) => {
-        if (!cancelled) {
-          setDiagrams(res.diagrams ?? []);
-        }
+    fetchDiagrams()
+      .then((d) => {
+        if (!cancelled) setDiagrams(d);
       })
       .catch((e) => {
         if (!cancelled) {
@@ -43,13 +57,47 @@ const DiagramsPanel = ({ projectId }: DiagramsPanelProps) => {
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [projectId, fetchDiagrams]);
+
+  const isArchitectureInProgress =
+    architectureStatus === "in_progress" && diagrams.length === 0;
+
+  useEffect(() => {
+    if (!projectId || !isArchitectureInProgress) return;
+
+    const interval = setInterval(() => {
+      fetchDiagrams()
+        .then((d) => {
+          if (d.length > 0) {
+            setDiagrams(d);
+            setError(null);
+          }
+        })
+        .catch(() => {
+          // Ignore poll errors; keep waiting
+        });
+    }, POLL_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [projectId, isArchitectureInProgress, fetchDiagrams]);
+
+  const handleStartArchitecture = async () => {
+    if (!onStartArchitecture || isStarting) return;
+    setIsStarting(true);
+    try {
+      await onStartArchitecture();
+    } finally {
+      setIsStarting(false);
+    }
+  };
 
   const handleRetry = () => {
     setError(null);
     setIsLoading(true);
-    getDiagrams(projectId)
-      .then((res) => setDiagrams(res.diagrams ?? []))
+    fetchDiagrams()
+      .then((d) => {
+        setDiagrams(d);
+      })
       .catch((e) =>
         setError(
           e?.message ?? "Não foi possível carregar os diagramas. Tente novamente."
@@ -57,6 +105,20 @@ const DiagramsPanel = ({ projectId }: DiagramsPanelProps) => {
       )
       .finally(() => setIsLoading(false));
   };
+
+  if (isArchitectureInProgress) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <h3 className="text-sm font-semibold text-foreground">
+          Arquitetura em andamento
+        </h3>
+        <p className="max-w-[260px] text-xs text-muted-foreground">
+          Aguardando retorno do agente de arquitetura
+        </p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -73,6 +135,36 @@ const DiagramsPanel = ({ projectId }: DiagramsPanelProps) => {
         <p className="text-sm text-destructive">{error}</p>
         <Button variant="outline" size="sm" onClick={handleRetry}>
           Tentar novamente
+        </Button>
+      </div>
+    );
+  }
+
+  if ((!diagrams || diagrams.length === 0) && canStartArchitecture) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary">
+          <LayoutGrid className="h-6 w-6 text-muted-foreground" />
+        </div>
+        <h3 className="text-sm font-semibold text-foreground">
+          Iniciar arquitetura
+        </h3>
+        <p className="max-w-[260px] text-xs text-muted-foreground">
+          Clique no botão abaixo para iniciar a análise de arquitetura do seu
+          projeto.
+        </p>
+        <Button
+          onClick={handleStartArchitecture}
+          disabled={isStarting}
+        >
+          {isStarting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Iniciando...
+            </>
+          ) : (
+            "Começar arquitetura"
+          )}
         </Button>
       </div>
     );

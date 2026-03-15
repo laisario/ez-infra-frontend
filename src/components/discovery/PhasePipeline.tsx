@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import type { DiscoveryState, Readiness } from "@/lib/api/types";
 import { Check, MessageSquare, LayoutGrid, Eye, Code2 } from "lucide-react";
 
@@ -7,13 +8,14 @@ export type PhaseKey = (typeof PHASE_KEYS)[number];
 export function isPhaseReady(
   phaseKey: PhaseKey,
   readiness: Readiness | null,
-  currentState: DiscoveryState | null
+  currentState: DiscoveryState | null,
+  isReadyForArchitecture?: boolean
 ): boolean {
   switch (phaseKey) {
     case "discovery":
       return true;
     case "architecture":
-      return readiness?.status === "ready_for_architecture";
+      return isReadyForArchitecture ?? false;
     case "review":
     case "terraform":
       return currentState === "architecture_ready";
@@ -87,7 +89,21 @@ const PhasePipeline = ({
   const isPast = (i: number) => i < currentPhaseIndex;
 
   const phaseReady = (key: PhaseKey) =>
-    isPhaseReady(key, readiness, currentState);
+    isPhaseReady(key, readiness, currentState, isReadyForArchitecture);
+
+  useEffect(() => {
+    if (
+      selectedPhase === "architecture" &&
+      !isReadyForArchitecture &&
+      onPhaseSelect
+    ) {
+      const fallback =
+        PHASES.find((p) =>
+          isPhaseReady(p.key as PhaseKey, readiness, currentState, isReadyForArchitecture)
+        )?.key ?? "discovery";
+      onPhaseSelect(fallback);
+    }
+  }, [selectedPhase, isReadyForArchitecture, onPhaseSelect, readiness, currentState]);
 
   return (
     <div className="rounded-xl border bg-card p-4 shadow-sm">

@@ -113,6 +113,7 @@ const DiscoveryPage = () => {
             isLoading={discovery.isLoading}
             error={discovery.error}
             onRetry={discovery.refresh}
+            refetchContext={discovery.refetchContext}
           />
         </div>
       </div>
