@@ -20,6 +20,8 @@ interface GitHubRepoPanelProps {
   isLinking?: boolean;
   linkError?: string | null;
   onLinkRepo: (url: string) => Promise<void>;
+  onSkipToArchitecture?: () => Promise<void>;
+  isSkippingToArchitecture?: boolean;
 }
 
 const GitHubRepoPanel = ({
@@ -30,6 +32,8 @@ const GitHubRepoPanel = ({
   isLinking = false,
   linkError = null,
   onLinkRepo,
+  onSkipToArchitecture,
+  isSkippingToArchitecture = false,
 }: GitHubRepoPanelProps) => {
   const [inputUrl, setInputUrl] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
@@ -87,6 +91,24 @@ const GitHubRepoPanel = ({
           <p className="mt-1 break-all text-sm font-medium text-foreground">
             {repoUrl}
           </p>
+          {onSkipToArchitecture && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="mt-3"
+              onClick={onSkipToArchitecture}
+              disabled={isSkippingToArchitecture}
+            >
+              {isSkippingToArchitecture ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Iniciando...
+                </>
+              ) : (
+                "Pular para arquitetura"
+              )}
+            </Button>
+          )}
         </>
       ) : (
         <>

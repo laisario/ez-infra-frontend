@@ -8,6 +8,7 @@ import type {
 } from "@/lib/api/types";
 import type { ContextResponse } from "@/lib/api/discoveryClient";
 import { linkRepo, startArchitecture } from "@/lib/api/discoveryClient";
+import { toast } from "sonner";
 import ReadinessPanel from "./ReadinessPanel";
 import ChecklistPanel from "./ChecklistPanel";
 import WhatWeUnderstandPanel from "./WhatWeUnderstandPanel";
@@ -76,6 +77,7 @@ const DiscoveryRightPanel = ({
   const [isLinkingRepo, setIsLinkingRepo] = useState(false);
   const [linkRepoError, setLinkRepoError] = useState<string | null>(null);
   const [architectureTriggered, setArchitectureTriggered] = useState(false);
+  const [isSkippingToArchitecture, setIsSkippingToArchitecture] = useState(false);
 
   const hasRepoUrl = !!(
     context?.repo_url?.trim() ||
@@ -87,9 +89,10 @@ const DiscoveryRightPanel = ({
   );
 
   const isReadyForArchitecture =
-    (readiness?.status === "maybe_ready" ||
+    architectureTriggered ||
+    ((readiness?.status === "maybe_ready" ||
       readiness?.status === "ready_for_architecture") &&
-    hasRepoUrl;
+      hasRepoUrl);
 
   const repoUrl =
     context?.repo_url?.trim() ||
@@ -124,12 +127,18 @@ const DiscoveryRightPanel = ({
   );
 
   const handleStartArchitecture = useCallback(async () => {
+    setIsSkippingToArchitecture(true);
     try {
       await startArchitecture(projectId);
       setArchitectureTriggered(true);
       refetchContext?.();
-    } catch {
-      // Error handled by DiagramsPanel or could add toast
+      setSelectedPhase("architecture");
+    } catch (e) {
+      const msg =
+        e instanceof Error ? e.message : "Não foi possível iniciar a arquitetura.";
+      toast.error(msg);
+    } finally {
+      setIsSkippingToArchitecture(false);
     }
   }, [projectId, refetchContext]);
   const firstReadyPhase: PhaseKey = (() => {
@@ -181,6 +190,8 @@ const DiscoveryRightPanel = ({
                       isLinking={isLinkingRepo}
                       linkError={linkRepoError}
                       onLinkRepo={handleLinkRepo}
+                      onSkipToArchitecture={handleStartArchitecture}
+                      isSkippingToArchitecture={isSkippingToArchitecture}
                     />
 
                     <WhatWeUnderstandPanel
