@@ -39,7 +39,6 @@ const DiscoveryChat = ({
     try {
       await sendMessage(text);
     } catch {
-      // Error handled in hook, toast shown by parent
     }
   };
 

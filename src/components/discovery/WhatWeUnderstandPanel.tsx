@@ -85,7 +85,6 @@ function deriveUnderstanding(
       source: "inferred",
     });
   }
-  // Repo is shown in GitHubRepoPanel; skip here to avoid duplication
   if (context?.stack?.languages?.length) {
     items.push({
       label: "Linguagens",

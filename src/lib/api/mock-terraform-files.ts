@@ -1,10 +1,4 @@
-/**
- * Mock Terraform files for frontend development/preview.
- * Represents a medium-to-large corporate e-commerce platform.
- *
- * To use: set VITE_USE_MOCK_TERRAFORM=true in .env
- * To replace with real API: remove the mock branch in discoveryClient.getTerraformFiles
- */
+
 
 import type { TerraformFilesResponse } from "./terraform";
 

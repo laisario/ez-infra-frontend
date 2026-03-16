@@ -260,7 +260,6 @@ const DiagramsPanel = ({
 
   return (
     <div className="grid h-full min-h-0 grid-cols-1 gap-4 p-4 lg:grid-cols-[1fr_minmax(240px,28%)] lg:gap-6">
-      {/* Diagram: main content (70–80% on desktop) */}
       <div className="min-h-[360px] min-w-0 lg:min-h-0">
         <ArchitectureDiagram
           nodes={activeData.nodes}
@@ -269,7 +268,6 @@ const DiagramsPanel = ({
         />
       </div>
 
-      {/* Info panel: right on desktop, below on mobile */}
       <div className="flex min-w-0 flex-col gap-4 overflow-y-auto lg:max-h-full">
         <ArchitectureAnalysisPanel analysis={uiData.analysis} />
 

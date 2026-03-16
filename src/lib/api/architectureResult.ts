@@ -1,12 +1,5 @@
-/**
- * Architecture result types and adapter.
- * Endpoint: GET /projects/:projectId/architecture-result
- * Consumes direct object format (not response[0].output).
- */
-
 export interface ArchitectureResource {
   servico: string;
-  /** Display string (API may return string or object) */
   config?: string | Record<string, unknown>;
 }
 
@@ -14,7 +7,6 @@ export interface VibeOption {
   descricao: string;
   custo_estimado: string;
   recursos: ArchitectureResource[];
-  /** From backend; do not infer. */
   relationships?: Array<{ source: string; target: string }>;
 }
 
@@ -24,7 +16,6 @@ export interface ArchitectureResult {
   vibePerformance: VibeOption;
 }
 
-/** UI-friendly graph node */
 export interface GraphNode {
   id: string;
   label: string;
@@ -32,13 +23,11 @@ export interface GraphNode {
   configSummary: string;
 }
 
-/** UI-friendly graph edge (from backend relationships only) */
 export interface GraphEdge {
   source: string;
   target: string;
 }
 
-/** UI-friendly architecture data for diagram rendering */
 export interface ArchitectureUIData {
   analysis: string;
   economy: {
@@ -149,10 +138,6 @@ function mapVibeToUIData(
   };
 }
 
-/**
- * Adapts raw API response to ArchitectureResult.
- * New contract: direct object. Fallback: response[0].output for backward compatibility.
- */
 export function adaptArchitectureResult(raw: unknown): ArchitectureResult | null {
   if (!raw || typeof raw !== "object") return null;
 
@@ -195,10 +180,6 @@ export function adaptArchitectureResult(raw: unknown): ArchitectureResult | null
   };
 }
 
-/**
- * Transforms ArchitectureResult to UI-friendly format for diagrams.
- * Nodes from recursos; edges only from backend relationships.
- */
 export function toArchitectureUIData(
   result: ArchitectureResult | null
 ): ArchitectureUIData | null {

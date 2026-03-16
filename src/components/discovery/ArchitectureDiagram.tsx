@@ -108,7 +108,6 @@ async function getLayoutedElements(
 interface ArchitectureDiagramProps {
   nodes: GraphNode[];
   edges: GraphEdge[];
-  /** When true, diagram fills its container (for full-page layout). Default: false (fixed height). */
   fillContainer?: boolean;
 }
 

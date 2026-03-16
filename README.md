@@ -1,73 +1,119 @@
-# VibeCloud Frontend
+# ez-infra Frontend
 
-## Project Description
+## Descrição do Projeto
 
-VibeCloud is a cloud architecture discovery and design tool. It guides users through a conversational discovery process to collect project requirements, link GitHub repositories, and generate cloud architecture diagrams. The frontend provides an AI-assisted discovery chat, checklist-based progress tracking, and visualization of architecture options (including cost vs. performance trade-offs) and Terraform outputs.
+ez-infra é uma ferramenta de descoberta e design de arquitetura em nuvem. Guia o usuário por um processo conversacional para coletar requisitos do projeto, vincular repositórios GitHub e gerar diagramas de arquitetura.
 
-## Group Members
+O frontend oferece:
+
+- **Chat de descoberta com IA** — Interface conversacional para coletar contexto do projeto
+- **Acompanhamento de progresso** — Checklist visual das etapas de descoberta
+- **Visualização de arquitetura** — Diagramas com trade-offs custo vs. performance
+- **Saída Terraform** — Infraestrutura como código gerada para deploy
+
+A aplicação integra com um serviço backend de ingestão para descoberta, geração de arquitetura e produção de arquivos Terraform.
+
+## Membros do Grupo
 
 - Laísa Rio
-- Lucas Propopio
+- Lucas Procopio
 - Paulo Boccaletti
 
-## Technologies Used
+## Onde o Projeto Está Hospedado
 
-- **Vite** — Build tool and dev server
-- **React 18** — UI framework
-- **TypeScript** — Type safety
-- **Tailwind CSS** — Styling
-- **shadcn/ui** — UI components (Radix primitives)
-- **TanStack Query** — Server state management
-- **React Router** — Routing
-- **ReactFlow** — Diagram visualization
-- **ELK.js** — Graph layout
-- **Recharts** — Charts
-- **Zod** — Schema validation
+O repositório está no **GitHub**. Clone ou acesse em:
 
-## Setup / Installation
+```
+https://github.com/<org>/ez-infra-frontend
+```
 
-1. **Prerequisites**: Node.js 18+ and npm (or use [nvm](https://github.com/nvm-sh/nvm) to manage Node versions).
+Substitua `<org>` pelo nome da organização ou usuário.
 
-2. **Clone the repository**:
-   ```sh
-   git clone <YOUR_GIT_URL>
-   cd vibing-cloud-frontend
-   ```
+## Tecnologias Utilizadas
 
-3. **Install dependencies**:
-   ```sh
-   npm install
-   ```
+- **Vite** — Build e servidor de desenvolvimento
+- **React 18** — Framework de UI
+- **TypeScript** — Tipagem estática
+- **Tailwind CSS** — Estilização
+- **shadcn/ui** — Componentes de UI (Radix)
+- **TanStack Query** — Estado do servidor
+- **React Router** — Roteamento
+- **ReactFlow** — Visualização de diagramas
+- **ELK.js** — Layout de grafos
+- **Recharts** — Gráficos
+- **Zod** — Validação de schemas
 
-## How to Run the Project
+## Instruções de Instalação
 
-Start the development server:
+### Pré-requisitos
+
+- **Node.js 18+** e npm (ou use [nvm](https://github.com/nvm-sh/nvm) para gerenciar versões)
+
+### 1. Clonar o repositório
+
+```sh
+git clone <URL_DO_REPOSITORIO>
+cd ez-infra-frontend
+```
+
+### 2. Instalar dependências
+
+```sh
+npm install
+```
+
+### 3. Configurar variáveis de ambiente
+
+Copie o arquivo de exemplo e configure:
+
+```sh
+cp .env.example .env
+```
+
+Edite o `.env` conforme necessário (veja [Configuração de Ambiente](#configuração-de-ambiente)).
+
+### 4. Iniciar o servidor de desenvolvimento
 
 ```sh
 npm run dev
 ```
 
-The app will be available at `http://localhost:8080` (or the port shown in the terminal).
+A aplicação estará disponível em `http://localhost:8080` (ou na porta exibida no terminal).
 
-Other scripts:
+## Configuração de Ambiente
 
-- `npm run build` — Production build
-- `npm run preview` — Preview production build locally
-- `npm run lint` — Run ESLint
-- `npm run test` — Run Vitest tests
+Crie o arquivo `.env` a partir do exemplo:
 
-## How to Use the Project
+```sh
+cp .env.example .env
+```
 
-1. **Start a new project**: On the home page, describe your project idea (e.g., name and summary). Submit to create a discovery project.
+### Variáveis
 
-2. **Discovery phase**: Use the chat to answer questions about your project. The assistant collects context about objectives, target audience, tech stack, and more.
+| Variável | Descrição |
+|----------|-----------|
+| `VITE_API_BASE_URL` | URL base da API backend (descoberta, chat) |
 
-3. **Link GitHub repository**: Paste your GitHub repo URL in the "Repositório no GitHub" panel to enable architecture analysis.
+Se não definida, é usada a URL de produção padrão.
 
-4. **Architecture**: Once discovery is complete and the repo is linked, start the architecture analysis. View diagrams and choose between cost-optimized vs. performance-optimized options.
+## Como Usar
 
-5. **Review & Terraform**: Review the architecture and access generated Terraform files for deployment.
+1. **Novo projeto** — Na página inicial, descreva sua ideia (nome e resumo) e envie.
+2. **Fase de descoberta** — Use o chat para responder perguntas sobre o projeto.
+3. **Vincular repositório** — Cole a URL do repositório GitHub no painel correspondente.
+4. **Arquitetura** — Após a descoberta e o vínculo do repo, inicie a análise. Visualize diagramas e escolha entre opções focadas em custo ou performance.
+5. **Revisão e Terraform** — Revise a arquitetura e acesse os arquivos Terraform gerados.
 
-## License
+## Scripts Disponíveis
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+| Comando | Descrição |
+|---------|-----------|
+| `npm run dev` | Servidor de desenvolvimento |
+| `npm run build` | Build de produção |
+| `npm run preview` | Preview do build localmente |
+| `npm run lint` | ESLint |
+| `npm run test` | Testes Vitest |
+
+## Licença
+
+Este projeto está sob a licença **MIT** — veja o arquivo [LICENSE](LICENSE).

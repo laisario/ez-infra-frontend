@@ -57,9 +57,7 @@ const GitHubRepoPanel = ({
       await onLinkRepo(url);
       setInputUrl("");
       onRepoLinked?.();
-    } catch {
-      // Parent sets linkError; keep localError for validation only
-    }
+    } catch {}
   };
 
   if (isLoading) {

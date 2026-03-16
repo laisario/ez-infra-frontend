@@ -1,10 +1,3 @@
-/**
- * Terraform types and adapter.
- * Endpoint: GET /projects/:projectId/terraform-files
- * Response: { project_id: string; files: Record<string, string> }
- * Adapter converts files object to TerraformFile[].
- */
-
 export interface TerraformFile {
   name: string;
   content: string;
@@ -17,10 +10,6 @@ export interface TerraformFilesResponse {
   files?: Record<string, string>;
 }
 
-/**
- * Converts { files: { [name]: content } } to TerraformFile[].
- * Keys = filenames, values = file contents.
- */
 export function adaptTerraformFilesResponse(
   raw: TerraformFilesResponse | unknown
 ): TerraformFile[] {

@@ -6,7 +6,6 @@ import type {
   Readiness,
 } from "./types";
 
-// --- Connection ready (initial state) ---
 export interface ConnectionReadyData {
   client_id: string;
   conversation_id: string;
@@ -17,7 +16,6 @@ export interface ConnectionReadyData {
   questions: Question[];
 }
 
-// --- Incoming events (server -> client) ---
 export interface WsConnectionReady {
   type: "connection.ready";
   data: ConnectionReadyData;
@@ -116,7 +114,6 @@ export type WsIncomingMessage =
   | WsSessionStateChanged
   | WsDiscoveryPanelUpdated;
 
-// --- Outgoing events (client -> server) ---
 export interface WsMessageCreate {
   type: "message.create";
   data: { content: string };

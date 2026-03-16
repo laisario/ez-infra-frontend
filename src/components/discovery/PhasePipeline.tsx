@@ -5,10 +5,6 @@ import { Check, MessageSquare, LayoutGrid, Eye, Code2 } from "lucide-react";
 export const PHASE_KEYS = ["discovery", "architecture", "review", "terraform"] as const;
 export type PhaseKey = (typeof PHASE_KEYS)[number];
 
-/**
- * Architecture-phase access: Arquitetura, Revisão, and Terraform share the same
- * unlock condition. When Arquitetura is enabled, Revisão and Terraform are enabled too.
- */
 export function isPhaseReady(
   phaseKey: PhaseKey,
   readiness: Readiness | null,

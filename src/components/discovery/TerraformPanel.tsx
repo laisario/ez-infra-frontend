@@ -37,10 +37,6 @@ function TerraformSkeleton() {
   );
 }
 
-/**
- * Mock handler for applying Terraform.
- * Replace with real POST /projects/:projectId/terraform/apply when available.
- */
 async function mockApplyTerraform(_projectId: string): Promise<void> {
   await new Promise((r) => setTimeout(r, 1500));
 }

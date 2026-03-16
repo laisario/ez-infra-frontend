@@ -174,9 +174,7 @@ const ReviewPanel = ({ projectId }: ReviewPanelProps) => {
           setSelectedOption(res.decision);
         }
       })
-      .catch(() => {
-        // Ignore; no pre-selection
-      });
+      .catch(() => {});
 
     return () => {
       cancelled = true;

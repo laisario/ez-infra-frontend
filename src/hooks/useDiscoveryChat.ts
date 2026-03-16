@@ -65,9 +65,7 @@ export function useDiscoveryChat(
   const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMountedRef = useRef(true);
 
-  const refresh = useCallback(() => {
-    // No-op for WS; reconnection handles recovery. Kept for API compatibility.
-  }, []);
+  const refresh = useCallback(() => {}, []);
 
   const connect = useCallback(() => {
     if (!projectId) return;
@@ -104,9 +102,7 @@ export function useDiscoveryChat(
           setError("Conexão perdida. Recarregue a página.");
         }
       },
-      onError: () => {
-        // Errors often surface via onclose
-      },
+      onError: () => {},
     });
 
     wsRef.current = ws;
