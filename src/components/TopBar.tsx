@@ -8,11 +8,9 @@ const TopBar = () => {
         <img
           src="/images/logo.png"
           alt="VibeCloud"
-          className="h-8 object-contain"
+          className="h-10 object-contain"
         />
-        <h1 className="text-lg font-semibold tracking-tight text-foreground">
-          Cloud Generation
-        </h1>
+    
       </div>
     </header>
   );

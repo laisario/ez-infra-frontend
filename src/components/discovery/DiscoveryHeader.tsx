@@ -54,6 +54,7 @@ export default function DiscoveryHeader({
   const hasArchitectureResult = currentState === "architecture_ready";
 
   const showPularButton =
+    selectedPhase === "discovery" &&
     hasRepo &&
     isReadyForArchitecture &&
     !hasArchitectureResult &&

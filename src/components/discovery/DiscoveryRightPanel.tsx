@@ -135,11 +135,17 @@ const DiscoveryRightPanel = ({
   const projectSummary = propProjectSummary ?? ctxProjectSummary;
   const lastAssistantMessage = getLastAssistantMessage(messages);
 
+  const isArchitecturePhase = selectedPhase === "architecture";
+
   return (
     <div className="flex h-full flex-col bg-surface-sunken">
-      <div className="flex-1 overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-y-auto p-5">
-          <div>
+      <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+        <div
+          className={`flex-1 min-h-0 ${
+            isArchitecturePhase ? "overflow-hidden p-0" : "overflow-y-auto p-5"
+          }`}
+        >
+          <div className={isArchitecturePhase ? "h-full" : ""}>
             {selectedPhase === "discovery" && (
               <>
                 {error ? (
@@ -199,7 +205,7 @@ const DiscoveryRightPanel = ({
             )}
 
             {selectedPhase === "architecture" && (
-              <div className="min-h-[200px]">
+              <div className={isArchitecturePhase ? "h-full min-h-0" : "min-h-[200px]"}>
                 <DiagramsPanel
                   projectId={projectId}
                   canStartArchitecture={isReadyForArchitecture}

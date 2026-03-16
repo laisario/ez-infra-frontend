@@ -255,67 +255,86 @@ const DiagramsPanel = ({
   const defaultVibe: VibeMode = economyHasData ? "economy" : "performance";
   const effectiveVibe = vibeMode ?? defaultVibe;
 
+  const activeData =
+    effectiveVibe === "economy" ? uiData.economy : uiData.performance;
+
   return (
-    <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
-      <ArchitectureAnalysisPanel analysis={uiData.analysis} />
+    <div className="grid h-full min-h-0 grid-cols-1 gap-4 p-4 lg:grid-cols-[1fr_minmax(240px,28%)] lg:gap-6">
+      {/* Diagram: main content (70–80% on desktop) */}
+      <div className="min-h-[360px] min-w-0 lg:min-h-0">
+        <ArchitectureDiagram
+          nodes={activeData.nodes}
+          edges={activeData.edges}
+          fillContainer
+        />
+      </div>
 
-      <Tabs
-        value={effectiveVibe}
-        onValueChange={(v) => setVibeMode(v as VibeMode)}
-        className="w-full"
-      >
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger
-            value="economy"
-            disabled={!economyHasData}
-            className="flex items-center gap-2"
-          >
-            <PiggyBank className="h-4 w-4" />
-            Arquitetura econômica
-          </TabsTrigger>
-          <TabsTrigger
-            value="performance"
-            disabled={!performanceHasData}
-            className="flex items-center gap-2"
-          >
-            <Zap className="h-4 w-4" />
-            Arquitetura performance
-          </TabsTrigger>
-        </TabsList>
+      {/* Info panel: right on desktop, below on mobile */}
+      <div className="flex min-w-0 flex-col gap-4 overflow-y-auto lg:max-h-full">
+        <ArchitectureAnalysisPanel analysis={uiData.analysis} />
 
-        <TabsContent value="economy" className="mt-4">
-          {economyHasData && (
-            <ArchitectureVibeView
-              data={uiData.economy}
-              title="Arquitetura econômica"
-              icon={PiggyBank}
-            />
-          )}
-        </TabsContent>
-        <TabsContent value="performance" className="mt-4">
-          {performanceHasData && (
-            <ArchitectureVibeView
-              data={uiData.performance}
-              title="Arquitetura performance"
-              icon={Zap}
-            />
-          )}
-        </TabsContent>
-      </Tabs>
+        <Tabs
+          value={effectiveVibe}
+          onValueChange={(v) => setVibeMode(v as VibeMode)}
+          className="w-full"
+        >
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger
+              value="economy"
+              disabled={!economyHasData}
+              className="flex items-center gap-2"
+            >
+              <PiggyBank className="h-4 w-4" />
+              Arquitetura econômica
+            </TabsTrigger>
+            <TabsTrigger
+              value="performance"
+              disabled={!performanceHasData}
+              className="flex items-center gap-2"
+            >
+              <Zap className="h-4 w-4" />
+              Arquitetura performance
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="economy" className="mt-4">
+            {economyHasData && (
+              <ArchitectureVibeCard
+                data={uiData.economy}
+                title="Arquitetura econômica"
+                icon={PiggyBank}
+              />
+            )}
+          </TabsContent>
+          <TabsContent value="performance" className="mt-4">
+            {performanceHasData && (
+              <ArchitectureVibeCard
+                data={uiData.performance}
+                title="Arquitetura performance"
+                icon={Zap}
+              />
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };
 
-interface ArchitectureVibeViewProps {
+interface ArchitectureVibeCardProps {
   data: ArchitectureUIData["economy"];
   title: string;
   icon: React.ElementType;
 }
 
-function ArchitectureVibeView({ data, title, icon: Icon }: ArchitectureVibeViewProps) {
+function ArchitectureVibeCard({
+  data,
+  title,
+  icon: Icon,
+}: ArchitectureVibeCardProps) {
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-start gap-3 rounded-xl border bg-card p-4 shadow-sm">
+    <div className="rounded-xl border bg-card p-4 shadow-sm">
+      <div className="flex items-start gap-3">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
           <Icon className="h-4 w-4 text-primary" />
         </div>
@@ -335,10 +354,6 @@ function ArchitectureVibeView({ data, title, icon: Icon }: ArchitectureVibeViewP
             </p>
           )}
         </div>
-      </div>
-
-      <div className="min-h-[400px] rounded-xl border bg-muted/20 p-2">
-        <ArchitectureDiagram nodes={data.nodes} edges={data.edges} />
       </div>
     </div>
   );

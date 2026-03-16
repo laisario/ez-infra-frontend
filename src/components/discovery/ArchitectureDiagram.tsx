@@ -1,6 +1,7 @@
 import { useLayoutEffect, useMemo } from "react";
 import ReactFlow, {
   Background,
+  BackgroundVariant,
   Controls,
   useNodesState,
   useEdgesState,
@@ -107,11 +108,14 @@ async function getLayoutedElements(
 interface ArchitectureDiagramProps {
   nodes: GraphNode[];
   edges: GraphEdge[];
+  /** When true, diagram fills its container (for full-page layout). Default: false (fixed height). */
+  fillContainer?: boolean;
 }
 
 export default function ArchitectureDiagram({
   nodes,
   edges,
+  fillContainer = false,
 }: ArchitectureDiagramProps) {
   const { initialNodes, initialEdges } = useMemo(() => {
     const flowNodes: Node<GraphNodeData>[] = nodes.map((n) => ({
@@ -152,7 +156,11 @@ export default function ArchitectureDiagram({
   if (nodes.length === 0) return null;
 
   return (
-    <div className="h-[280px] w-full min-w-0 overflow-hidden rounded-lg border bg-muted/30">
+    <div
+      className={`w-full min-w-0 overflow-hidden rounded-lg border bg-[#fafafa] ${
+        fillContainer ? "h-full" : "h-[280px]"
+      }`}
+    >
       <ReactFlow
         nodes={flowNodes}
         edges={flowEdges}
@@ -169,7 +177,12 @@ export default function ArchitectureDiagram({
         maxZoom={1.5}
         proOptions={{ hideAttribution: true }}
       >
-        <Background gap={16} size={1} color="hsl(var(--border))" />
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={20}
+          size={1}
+          color="rgba(0,0,0,0.08)"
+        />
         <Controls showInteractive={false} />
       </ReactFlow>
     </div>
