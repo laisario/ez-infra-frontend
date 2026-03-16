@@ -45,9 +45,12 @@ async function mockApplyTerraform(_projectId: string): Promise<void> {
   await new Promise((r) => setTimeout(r, 1500));
 }
 
+const POLL_INTERVAL_MS = 4000;
+
 const TerraformPanel = ({ projectId }: TerraformPanelProps) => {
   const [files, setFiles] = useState<TerraformFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isApplying, setIsApplying] = useState(false);
 
@@ -60,10 +63,18 @@ const TerraformPanel = ({ projectId }: TerraformPanelProps) => {
     let cancelled = false;
     setIsLoading(true);
     setError(null);
+    setIsGenerating(false);
 
     getTerraformFiles(projectId)
       .then((data) => {
-        if (!cancelled) setFiles(data);
+        if (cancelled) return;
+        setFiles(data);
+        if (data.length > 0) {
+          setIsLoading(false);
+        } else {
+          setIsLoading(false);
+          setIsGenerating(true);
+        }
       })
       .catch((e) => {
         if (!cancelled) {
@@ -71,10 +82,8 @@ const TerraformPanel = ({ projectId }: TerraformPanelProps) => {
             e?.message ?? "Não foi possível carregar os arquivos Terraform. Tente novamente."
           );
           setFiles([]);
+          setIsLoading(false);
         }
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
       });
 
     return () => {
@@ -82,11 +91,36 @@ const TerraformPanel = ({ projectId }: TerraformPanelProps) => {
     };
   }, [projectId]);
 
+  useEffect(() => {
+    if (!projectId || !isGenerating) return;
+
+    const id = setInterval(async () => {
+      try {
+        const data = await getTerraformFiles(projectId);
+        setFiles(data);
+        if (data.length > 0) {
+          setIsGenerating(false);
+        }
+      } catch (e) {
+        setError(
+          e?.message ?? "Não foi possível carregar os arquivos Terraform. Tente novamente."
+        );
+        setIsGenerating(false);
+      }
+    }, POLL_INTERVAL_MS);
+
+    return () => clearInterval(id);
+  }, [projectId, isGenerating]);
+
   const handleRetry = () => {
     setError(null);
     setIsLoading(true);
+    setIsGenerating(false);
     getTerraformFiles(projectId)
-      .then(setFiles)
+      .then((data) => {
+        setFiles(data);
+        if (data.length === 0) setIsGenerating(true);
+      })
       .catch((e) =>
         setError(
           e?.message ?? "Não foi possível carregar os arquivos Terraform. Tente novamente."
@@ -128,6 +162,26 @@ const TerraformPanel = ({ projectId }: TerraformPanelProps) => {
         <p className="text-sm text-destructive">{error}</p>
         <Button variant="outline" size="sm" onClick={handleRetry}>
           Tentar novamente
+        </Button>
+      </div>
+    );
+  }
+
+  if (isGenerating) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+        <h3 className="text-sm font-semibold text-foreground">
+          Gerando Terraform...
+        </h3>
+        <p className="max-w-[260px] text-xs text-muted-foreground">
+          Os arquivos de infraestrutura estão sendo gerados. Isso pode levar
+          alguns segundos.
+        </p>
+        <Button variant="default" size="default" disabled>
+          Aplicar Terraform
         </Button>
       </div>
     );

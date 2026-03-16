@@ -1,7 +1,8 @@
 /**
  * Terraform types and adapter.
- * Endpoint: GET /projects/:projectId/terraform
- * Adapter normalizes backend response to TerraformFile[].
+ * Endpoint: GET /projects/:projectId/terraform-files
+ * Response: { project_id: string; files: Record<string, string> }
+ * Adapter converts files object to TerraformFile[].
  */
 
 export interface TerraformFile {
@@ -11,29 +12,29 @@ export interface TerraformFile {
   type?: string;
 }
 
-/**
- * Normalizes API response to TerraformFile[].
- * Replace this adapter when backend contract is known.
- */
-export function adaptTerraformResponse(raw: unknown): TerraformFile[] {
-  if (!raw) return [];
+export interface TerraformFilesResponse {
+  project_id?: string;
+  files?: Record<string, string>;
+}
 
-  if (Array.isArray(raw)) {
-    return raw
-      .filter((item): item is Record<string, unknown> => item && typeof item === "object")
-      .map((item) => ({
-        name: String(item.name ?? ""),
-        content: String(item.content ?? ""),
-        path: item.path != null ? String(item.path) : undefined,
-        type: item.type != null ? String(item.type) : undefined,
-      }))
-      .filter((f) => f.name || f.content);
-  }
+/**
+ * Converts { files: { [name]: content } } to TerraformFile[].
+ * Keys = filenames, values = file contents.
+ */
+export function adaptTerraformFilesResponse(
+  raw: TerraformFilesResponse | unknown
+): TerraformFile[] {
+  if (!raw || typeof raw !== "object") return [];
 
   const obj = raw as Record<string, unknown>;
-  if (Array.isArray(obj.files)) {
-    return adaptTerraformResponse(obj.files);
-  }
+  const files = obj.files;
 
-  return [];
+  if (!files || typeof files !== "object") return [];
+
+  return Object.entries(files)
+    .filter(([, content]) => typeof content === "string")
+    .map(([name, content]) => ({
+      name,
+      content: content as string,
+    }));
 }

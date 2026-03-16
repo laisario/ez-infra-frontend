@@ -154,19 +154,14 @@ export async function getDiagrams(
 }
 
 export type { TerraformFile } from "./terraform";
-export { adaptTerraformResponse } from "./terraform";
+export { adaptTerraformFilesResponse } from "./terraform";
 
 import type { TerraformFile } from "./terraform";
-import { adaptTerraformResponse } from "./terraform";
-import { MOCK_TERRAFORM_FILES } from "./mock-terraform";
+import { adaptTerraformFilesResponse } from "./terraform";
 
 export async function getTerraformFiles(projectId: string): Promise<TerraformFile[]> {
-  try {
-    const raw = await request<unknown>(`/projects/${projectId}/terraform`);
-    return adaptTerraformResponse(raw);
-  } catch {
-    return MOCK_TERRAFORM_FILES;
-  }
+  const raw = await request<unknown>(`/projects/${projectId}/terraform-files`);
+  return adaptTerraformFilesResponse(raw);
 }
 
 export type {
