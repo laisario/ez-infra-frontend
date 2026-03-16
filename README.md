@@ -2,7 +2,7 @@
 
 ## Descrição do Projeto
 
-ez-infra é uma ferramenta de descoberta e design de arquitetura em nuvem. Guia o usuário por um processo conversacional para coletar requisitos do projeto, vincular repositórios GitHub e gerar diagramas de arquitetura.
+ez-infra é uma ferramenta de geração de arquitetura de infraestrutura para aplicações. Guia o usuário por um processo conversacional para entender o projeto, permite vincular repositórios do GitHub para alinhar a infra ao código e gera diagramas de arquitetura e arquivos Terraform para visualização e aplicação.
 
 O frontend oferece:
 
@@ -21,13 +21,11 @@ A aplicação integra com um serviço backend de ingestão para descoberta, gera
 
 ## Onde o Projeto Está Hospedado
 
-O repositório está no **GitHub**. Clone ou acesse em:
-
 ```
-https://github.com/<org>/ez-infra-frontend
+https://vibe-cloud-frontend-production.up.railway.app
 ```
 
-Substitua `<org>` pelo nome da organização ou usuário.
+
 
 ## Tecnologias Utilizadas
 
@@ -52,7 +50,7 @@ Substitua `<org>` pelo nome da organização ou usuário.
 ### 1. Clonar o repositório
 
 ```sh
-git clone <URL_DO_REPOSITORIO>
+git clone https://github.com/laisario/ez-infra-frontend.git
 cd ez-infra-frontend
 ```
 
@@ -80,21 +78,6 @@ npm run dev
 
 A aplicação estará disponível em `http://localhost:8080` (ou na porta exibida no terminal).
 
-## Configuração de Ambiente
-
-Crie o arquivo `.env` a partir do exemplo:
-
-```sh
-cp .env.example .env
-```
-
-### Variáveis
-
-| Variável | Descrição |
-|----------|-----------|
-| `VITE_API_BASE_URL` | URL base da API backend (descoberta, chat) |
-
-Se não definida, é usada a URL de produção padrão.
 
 ## Como Usar
 
